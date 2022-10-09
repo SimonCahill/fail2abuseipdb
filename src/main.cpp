@@ -249,7 +249,7 @@ string getCategoriesForJail() {
         return x.first == g_jailName;
     });
 
-    if (posInMap != g_categoryLookup.end()) {
+    if (posInMap != g_categoryLookup.end() && posInMap->second != -1) {
         categories.append(format(",{0:d}", posInMap->second));
     }
 
