@@ -252,6 +252,8 @@ string getCategoriesForJail() {
     if (posInMap != g_categoryLookup.end()) {
         categories.append(format(",{0:d}", posInMap->second));
     }
+
+    return categories;
 }
 
 // other impl
@@ -323,8 +325,8 @@ void printHelpText(const string& binName) {
             --jail-name, -j[jail]   Sets the name of the jail (useful if exporting specific jails from fail2ban)
 
         Comment variables:
-            {0}                 Jail name
-            {1}                 Report time
+            {{0}}                   Jail name
+            {{1}}                   Report time
     )";
 
     cout << format(RAW, binName) << endl;
