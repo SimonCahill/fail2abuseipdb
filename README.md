@@ -67,3 +67,18 @@ fail2ban-client banned | fail2abuseipdb -s -c"Brute-force attack against {0}" >/
 
  - Initial release
  - Very much still a beta release, **but it works**!
+
+# To-Do
+
+In no particular order, the to-dos are as follows. I just hope I update them 🫣
+
+ 1) Add version information during build
+ 2) Add install target
+ 3) Add remove target
+ 4) Build deb-package?!
+ 5) Add pipe support
+ 6) Add support for calling fail2ban directly
+ 7) Clean up code for first *real* release
+ 8) Add debug messages (printed to stderr)
+ 9) Unit tests? Don't really care for them
+ 10) Add support for adding/overriding categories (both default and per jail)
