@@ -32,6 +32,7 @@ using nlohmann::json;
 using defcat_t = std::vector<int32_t>;
 using lookup_t = std::map<std::string, int32_t>;
 using std::cerr;
+using std::cin;
 using std::cout;
 using std::endl;
 using std::exception;
@@ -53,6 +54,7 @@ static bool     alreadyReported(const string&); //!< Indicates whether or not an
 static bool     outputCsv(const json&); //!< Dumps the CSV-encoded data to the terminal
 static bool     parseArgs(int32_t argc, char** argv); //!< Parses the application arguments
 static bool     parseFail2BanFromFile(); //!< Parses fail2ban output from a given file
+static bool     parseFail2BanFromStdIn(); //!< Parses fail2ban output from stdin
 static string   getCategoriesForJail(); //!< Gets the categories for the currently selected jail
 static svec_t   getLinesFromJson(const json&, const string&); //!< Gets a CSV-formatted line from a JSON object
 static void     printHelpText(const string&); //!< Prints the help text to the terminal
@@ -101,15 +103,18 @@ static string   g_reportComment = "IP banned by fail2ban; banned in jail {0}. Re
 int main(int32_t argc, char** argv) {
     if (!parseArgs(argc, argv)) { return 0; }
 
+    int32_t rval = 0;
+
     if (g_readFromFile) {
-        parseFail2BanFromFile();
+        rval = parseFail2BanFromFile() ? 0 : 1;
     } else if (g_readFromStdIn) {
-
+        rval = parseFail2BanFromStdIn() ? 0 : 2;
     } else {
-
+        // exec fail2ban here
+        rval = 3;
     }
 
-    return 0;
+    return rval;
 }
 
 bool alreadyReported(const string& ip) {
@@ -148,6 +153,44 @@ bool parseFail2BanFromFile() {
     transformFail2BanInput(fileContents);
     try {
         entries = json::parse(fileContents);
+    } catch (const exception& ex) {
+        cerr << "Failed to parse JSON! Invalid format?" << endl
+             << "Error description: " << ex.what() << endl;
+        rval = false;
+        goto Exit;
+    }
+
+    rval = outputCsv(entries);
+
+    Exit:
+    return rval;
+}
+
+/**
+ * @brief Attempts to read input from fail2ban from stdin.
+ * 
+ * @return true If everything was successful.
+ * @return false Otherwise.
+ */
+bool parseFail2BanFromStdIn() {
+    bool rval = true;
+
+    string f2bOutput{};
+    json entries;
+
+    for (string line{}; std::getline(cin, line);) {
+        f2bOutput.append(line).append("\n");
+    }
+
+    if (f2bOutput.empty()) {
+        rval = false;
+        cerr << "Failed to read input from stdin!" << endl;
+        goto Exit;
+    }
+
+    transformFail2BanInput(f2bOutput);
+    try {
+        entries = json::parse(f2bOutput);
     } catch (const exception& ex) {
         cerr << "Failed to parse JSON! Invalid format?" << endl
              << "Error description: " << ex.what() << endl;
@@ -327,6 +370,12 @@ void printHelpText(const string& binName) {
         Comment variables:
             {{0}}                   Jail name
             {{1}}                   Report time
+
+        Exit codes:
+            0                       Success
+            1                       Failed to parse input from file
+            2                       Failed to parse input from stdin
+            3                       Failed to parse input from fail2ban exec
     )";
 
     cout << format(RAW, binName) << endl;
