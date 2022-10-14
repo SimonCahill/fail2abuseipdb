@@ -58,3 +58,27 @@ target_link_libraries(
     fmt
     nlohmann_json
 )
+
+###
+# Install and Remove targets and their configs go here
+###
+set(fail2abuseipdb_INSTALL_DIR "/usr/local/bin")
+
+install(
+    TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION ${fail2abuseipdb_INSTALL_DIR}
+)
+
+add_custom_target("uninstall" COMMENT "Uninstall fail2abuseipdb")
+add_custom_command(
+    TARGET "uninstall"
+    POST_BUILD
+        COMMENT "Uninstall fail2abuseipdb from the current system"
+        COMMAND xargs rm -Rfv < install_manifest.txt || echo "Nothing to be removed from system!"
+)
+
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_CONTACT "Simon Cahill <simon@simonc.eu>")
+set(CPACK_PACKAGE_VENDOR "Simon Cahill")
+set(CPACK_GENERATOR DEB)
+include(CPack)
