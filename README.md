@@ -21,7 +21,7 @@ Arguments and switched marked as ((planned)) are not use available (or usable)!
 | Long          | Short | Description                                                           | Status        |
 |---------------|-------|-----------------------------------------------------------------------|---------------|
 | --help        | -h    | Prints the help menu and exits.                                       | working       |
-| --stdin       | -s    | Reads input from stdin (pipe).                                        | ((planned))   |
+| --stdin       | -s    | Reads input from stdin (pipe).                                        | working       |
 | --file=       | -f[f] | Reads input from the passed file or fail2ban.json if no file passed.  | working       |
 | --version     | -v    | Prints the version information and exits.                             | ((planned))   |
 | --comment     | -c    | Overrides the default value for the comment. Must be in quotes (")!   | working       |
@@ -76,7 +76,7 @@ In no particular order, the to-dos are as follows. I just hope I update them ðŸ«
  2) Add install target
  3) Add remove target
  4) Build deb-package?!
- 5) Add pipe support
+ 5) ~~Add pipe support~~ Working
  6) Add support for calling fail2ban directly
  7) Clean up code for first *real* release
  8) Add debug messages (printed to stderr)
