@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(fail2abuseipdb VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "A simple utility for converting fail2ban jail info to abuseipdb csv format")
+project(fail2abuseipdb VERSION 0.2.0 LANGUAGES CXX DESCRIPTION "A simple utility for converting fail2ban jail info to abuseipdb csv format")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS ON) # optional
