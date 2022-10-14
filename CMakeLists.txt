@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS ON) # optional
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/include/version.hpp)
+
 # Set options for submodules
 # I don't want to build Nils' tests
 
@@ -18,6 +20,11 @@ add_compile_options(
     -Wpedantic
     -Werror
     -Wall
+)
+
+include_directories(
+    include/
+    ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
 file(GLOB_RECURSE FILES FOLLOW_SYMLINKS ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
