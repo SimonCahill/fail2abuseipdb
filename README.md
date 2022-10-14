@@ -7,8 +7,8 @@ fail2ban's output (which a weird semi-JSON format) to a CSV-format which can dir
 fail2abuseipdb provides a limited featureset, although it is enough for its task.
 
  - Reading fail2ban's output from a file
- - Reading fail2ban's output from stdin via pipes (**WIP**)
- - Reading fail2ban's output directly by calling fail2ban (requires elevated privileges and may be dangerous!) (**WIP**)
+ - Reading fail2ban's output from stdin via pipes
+ - Reading fail2ban's output directly by calling fail2ban (requires elevated privileges and may be dangerous!) (**Search is bugged!**)
  - Comment customisation
  - Supports both individual jails and complete f2b output!
  - Jail names are detected automatically when full output is detected
@@ -25,13 +25,24 @@ Arguments and switched marked as ((planned)) are not use available (or usable)!
 | --file=       | -f[f] | Reads input from the passed file or fail2ban.json if no file passed.  | working       |
 | --version     | -v    | Prints the version information and exits.                             | ((planned))   |
 | --comment     | -c    | Overrides the default value for the comment. Must be in quotes (")!   | working       |
-| --jail-name=  | -j[j] | Useful when importing single jails; sets the name for the jail.       | working       |
+| --jail-name=  | -j[j] | Useful when importing single jails; sets the name for the jail.       | working       |       
+| --f2b=        | -e[f] | Sets the location of fail2ban directory                               | working       |
+| --call-f2b    | -%    | No, that's not a typo. Call fail2ban directory                        | (kinda)working|
 
 ## Comment variables
 | Variable      | Function                                                                      | Status        |
 |---------------|-------------------------------------------------------------------------------|---------------|
 | {0}           | Prints the jail name in the comment.                                          | working       |
 | {1}           | Prints the report time in the comment.                                        | ((planned))   |
+
+# Exit Codes
+| Code          | Meaning                                                                       |
+| 0             | Success                                                                       |
+| 1             | Failed to parse input from file                                               |
+| 2             | Failed to parse input from stdin                                              |
+| 3             | Failed to parse input from fail2ban directly                                  |
+| 4             | Insufficient execution rights                                                 |
+| 5             | Could not find fail2ban-client                                                |
 
 # Usage
 
@@ -63,6 +74,16 @@ fail2ban-client banned | fail2abuseipdb -s -c"Brute-force attack against {0}" >/
 
 # Changelog
 
+**v0.2.0b**
+
+New features:
+ - Added support for piping fail2ban-client output directly
+ - Added support for calling fail2ban-client directly
+
+New bugs:
+ - Automagic search for fail2ban is bugged and I don't want to fix it just yet
+    - Circumvent this issue by calling `fail2abuseipdb -% -e$(which fail2ban-client)`
+
 **v0.1.0b**
 
  - Initial release
@@ -72,12 +93,12 @@ fail2ban-client banned | fail2abuseipdb -s -c"Brute-force attack against {0}" >/
 
 In no particular order, the to-dos are as follows. I just hope I update them 🫣
 
- 1) Add version information during build
+ 1) ~~Add version information during build~~ Working
  2) Add install target
  3) Add remove target
  4) Build deb-package?!
  5) ~~Add pipe support~~ Working
- 6) Add support for calling fail2ban directly
+ 6) ~~Add support for calling fail2ban directly~~ Working, except for automagic search
  7) Clean up code for first *real* release
  8) Add debug messages (printed to stderr)
  9) Unit tests? Don't really care for them
