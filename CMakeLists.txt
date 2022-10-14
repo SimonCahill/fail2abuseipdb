@@ -28,6 +28,7 @@ include_directories(
 )
 
 if (DEFINED fail2abuseipdb_DEBUG)
+    message(STATUS "### ENABLED DEBUG ###")
     add_compile_options(
         -O0
         -ggdb
