@@ -27,6 +27,18 @@ include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
+if (DEFINED fail2abuseipdb_DEBUG)
+    add_compile_options(
+        -O0
+        -ggdb
+    )
+else()
+    add_compile_options(
+        -O2
+        -s
+    )
+endif()
+
 file(GLOB_RECURSE FILES FOLLOW_SYMLINKS ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
 
 include_directories(
