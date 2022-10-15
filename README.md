@@ -37,6 +37,7 @@ Arguments and switched marked as ((planned)) are not use available (or usable)!
 
 # Exit Codes
 | Code          | Meaning                                                                       |
+|---------------|-------------------------------------------------------------------------------|
 | 0             | Success                                                                       |
 | 1             | Failed to parse input from file                                               |
 | 2             | Failed to parse input from stdin                                              |
