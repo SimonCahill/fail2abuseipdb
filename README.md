@@ -95,9 +95,9 @@ New bugs:
 In no particular order, the to-dos are as follows. I just hope I update them 🫣
 
  1) ~~Add version information during build~~ Working
- 2) Add install target
- 3) Add remove target
- 4) Build deb-package?!
+ 2) ~~Add install target~~ Working
+ 3) ~~Add remove target~~ Use deb instead
+ 4) ~~Build deb-package?!~~ Working
  5) ~~Add pipe support~~ Working
  6) ~~Add support for calling fail2ban directly~~ Working, except for automagic search
  7) Clean up code for first *real* release
