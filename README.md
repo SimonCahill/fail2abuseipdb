@@ -49,7 +49,6 @@ Arguments and switched marked as ((planned)) are not use available (or usable)!
 
 Getting started with fail2abuseipdb is simple. Install the file to /usr/bin (or where ever in your PATH) and call it as follows.
 
-**Please not at the time of writing, ONLY reading from files works!**
 
 ## Reading from files
 ```bash
@@ -63,7 +62,7 @@ fail2ban-client banned >/tmp/alljails.txt
 fail2abuseipdb -f/tmp/alljails.txt -c"Brute-force attack against {0}" >/tmp/alljails.csv
 ```
 
-## Reading from stdin (*WIP*)
+## Reading from stdin
 ```bash
 # Single jail
 
