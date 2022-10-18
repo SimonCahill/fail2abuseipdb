@@ -27,7 +27,7 @@ Arguments and switched marked as ((planned)) are not use available (or usable)!
 | --comment     | -c    | Overrides the default value for the comment. Must be in quotes (")!   | working       |
 | --jail-name=  | -j[j] | Useful when importing single jails; sets the name for the jail.       | working       |       
 | --f2b=        | -e[f] | Sets the location of fail2ban directory                               | working       |
-| --call-f2b    | -%    | No, that's not a typo. Call fail2ban directory                        | (kinda)working|
+| --call-f2b    | -%    | No, that's not a typo. Call fail2ban directly                         | (kinda)working|
 
 ## Comment variables
 | Variable      | Function                                                                      | Status        |
