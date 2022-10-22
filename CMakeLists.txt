@@ -60,6 +60,18 @@ target_link_libraries(
 )
 
 ###
+# Docs target
+###
+add_custom_target("docs" COMMENT "Create Doxygen documentation")
+add_custom_command(
+    TARGET "docs"
+    POST_BUILD
+        COMMENT "Generate Doxygen documentation for publication or reading"
+        COMMAND doxygen ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+###
 # Install and Remove targets and their configs go here
 ###
 set(fail2abuseipdb_INSTALL_DIR "/usr/local/bin")

@@ -72,6 +72,30 @@ fail2ban-client get myjail banned | fail2abuseipdb -s -jmyjail -c"Was banned for
 fail2ban-client banned | fail2abuseipdb -s -c"Brute-force attack against {0}" >/tmp/alljails.csv
 ```
 
+# Building the application
+
+If you don't trust the .deb packages uploaded in the releases, or your system doesn't use .deb packages, you can download, build and install the application yourself.
+
+To do so is fairly simple:
+```bash
+# getting ready
+$ git clone --recursive https://github.com/SimonCahill/fail2abuseipdb.git && cd fail2abuseipdb
+$ mkdir build && cd build
+$ cmake ..
+
+# making the .deb:
+$ cpack .
+
+# making the application:
+$ make -j
+
+# generating documentation (requires Doxygen!)
+$ make docs
+
+# installing the freshly generated binary
+$ sudo make install
+```
+
 # Changelog
 
 **v0.2.0b**
