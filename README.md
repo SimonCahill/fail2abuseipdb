@@ -3,6 +3,9 @@
 fail2abuseipdb is a server administration tool (currently WIP!) which allows server administrators to **easily** and **automagically** convert
 fail2ban's output (which a weird semi-JSON format) to a CSV-format which can directly be published to abuseipdb!
 
+![GitHub all releases](https://img.shields.io/github/downloads/SimonCahill/fail2abuseipdb/total?logo=github)
+![GitHub](https://img.shields.io/github/license/SimonCahill/fail2abuseipdb)
+
 # Features
 fail2abuseipdb provides a limited featureset, although it is enough for its task.
 
