@@ -1,0 +1,65 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Clean Build",
+            "type": "shell",
+            "linux": {
+                "command": "rm",
+                "args": [ "-Rfv", "${workspaceFolder}/build/*" ]
+            },
+            "group": "build"
+        },
+        {
+            "label": "Create Build Dir",
+            "type": "shell",
+            "linux": {
+                "command": "mkdir",
+                "args": [ "-p", "${workspaceFolder}/build" ]
+            },
+            "group": "build"
+        },
+        {
+            "label": "Cmake (Release)",
+            "type": "shell",
+            "linux": {
+                "options": { "cwd": "${workspaceFolder}/build" },
+                "args": [ "${workspaceFolder}", "-DCMAKE_BUILD_TYPE=Release" ]
+            },
+            "group": "build",
+            "dependsOn": "Create Build Dir"
+        },
+        {
+            "label": "Cmake (Debug)",
+            "type": "shell",
+            "linux": {
+                "options": { "cwd": "${workspaceFolder}/build" },
+                "args": [ "${workspaceFolder}", "-DCMAKE_BUILD_TYPE=Debug" ],
+                "command": "cmake"
+            },
+            "group": "build",
+            "dependsOn": "Create Build Dir"
+        },
+        {
+            "label": "Build fail2abuseipdb",
+            "type": "shell",
+            "linux": {
+                "options": { "cwd": "${workspaceFolder}/build" },
+                "args": [ "-j" ],
+                "command": "make"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Generate .deb (Release)",
+            "dependsOn": "Cmake (Release)",
+            "linux": {
+                "options": { "cwd": "${workspaceFolder}/build" },
+                "command": "cpack",
+                "args": [ "." ]
+            }
+        }
+    ]
+}
