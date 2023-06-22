@@ -1,0 +1,60 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Create Build Dir",
+            "type": "shell",
+            "command": "mkdir -p ${workspaceFolder}/build",
+            "group": "build"
+        },
+        {
+            "label": "Generate Makefiles (Debug)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "${workspaceFolder}",
+                "-DCMAKE_BUILD_TYPE=Debug"
+            ],
+            "dependsOn": [ "Create Build Dir" ],
+            "group": "build",
+            "options": { "cwd": "${workspaceFolder}/build" }
+        },
+        {
+            "label": "Generate Makefiles (Release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "${workspaceFolder}",
+                "-DCMAKE_BUILD_TYPE=Release"
+            ],
+            "dependsOn": [ "Create Build Dir" ],
+            "group": "build",
+            "options": { "cwd": "${workspaceFolder}/build" }
+        },
+        {
+            "label": "Clean Build Dir",
+            "group": "build",
+            "type": "shell",
+            "linux": {
+                "command": "rm -Rfv ${workspaceFolder}/build/*",
+                "options": { "cwd": "${workspaceFolder}" }
+            },
+            "osx": {
+                "command": "rm -Rfv ${workspaceFolder}/build/*",
+                "options": { "cwd": "${workspaceFolder}" }
+            }
+        },
+        {
+            "label": "Build fail2abuseipdb",
+            "group": "build",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "-C", "${workspaceFolder}/build",
+                "-j"
+            ]
+        }
+    ]
+}
