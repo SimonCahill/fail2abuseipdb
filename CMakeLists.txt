@@ -8,6 +8,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/include/version.hpp)
 
+###
+# Ensure all submodules are initialised
+###
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/git_submodule.cmake)
+
 # Set options for submodules
 # I don't want to build Nils' tests
 
