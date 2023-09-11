@@ -4,6 +4,7 @@ project(fail2abuseipdb VERSION 0.2.0 LANGUAGES CXX DESCRIPTION "A simple utility
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS ON) # optional
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/include/version.hpp)
 
