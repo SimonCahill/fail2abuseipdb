@@ -1,0 +1,20 @@
+/**
+ * @file version.hpp.in
+ * @author Simon Cahill (simon@simonc.eu)
+ * @brief Contains version information about this software
+ * @version 0.1
+ * @date 2022-10-14
+ * 
+ * @copyright Copyright (c) 2022 Simon Cahill and Contributors
+ */
+
+#ifndef FAIL2ABUSEIPDB_INCLUDE_VERSION_HPP
+#define FAIL2ABUSEIPDB_INCLUDE_VERSION_HPP
+
+#include <string>
+
+using std::string;
+
+constexpr string_view getProjectVersion() { return R"(0.2.0)"; }
+
+#endif // FAIL2ABUSEIPDB_INCLUDE_VERSION_HPP
