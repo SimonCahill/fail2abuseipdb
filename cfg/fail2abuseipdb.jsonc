@@ -1,0 +1,83 @@
+//////////////////////////////////////////////////////////////////
+//             Configuration file for fail2abuseipdb            //
+//                                                              //
+//  Use this file to configure fail2abuseipdbv2 to your needs.  //
+//  You may insert comments as required, they will be ignored   //
+//  by the parser.                                              //
+//                                                              //
+//  fail2abuseipdb should only have read access to this file,   //
+//  and no write access!                                        //
+//                                                              //
+//  Basic configuration:                                        //
+//  fail2abuseipdbv2 directly utilises fail2ban's SQLite        //
+//  database, and user-modifyable queries.                      //
+//  Any misconfiguration will be logged accordingly, and, if    //
+//  allowed, will be replaced by the default value - defined at //
+//  generation-time.                                            //
+//  The same rules apply for missing configurations!            //
+//                                                              //
+//  In the default configuration, each config should be         //
+//  accompanied by a comment briefly explaining what it's for.  //
+//                                                              //
+//  Written by Simon Cahill (contact@simonc.eu),                //
+//                          (s.cahill@procyon-systems.de)       //
+//  Copyright ©️ 2023 Simon Cahill and Procyon Systems           //
+//////////////////////////////////////////////////////////////////
+
+{
+    // f2b_db_file
+    // The location on the disk where the fail2ban database file
+    // is located.
+    // If you're unsure, or this program was compiled for a weird
+    // Linux distro, you can type `fail2ban-client get dbfile` and
+    // copy the path from there.
+    // This file is generally located under /var/lib/fail2ban/fail2ban.sqlite3 on Debian-based systems.
+    "f2b_db_file": "@f2abuseipdb_F2B_DB_FILE@",
+
+    // queries
+    // This section contains all useful queries for retrieving data
+    // from the database.
+    // WARNING: Misconfiguring these values can lead to massive
+    // breakage of the application!
+    // See https://www.sqlite.org/lang.html for help.
+    "queries": {
+        
+        // get_jails_query
+        // The query used to retrieve a list of jails from the database.
+        "get_jails_query": "@f2abuseipdb_GET_JAILS@",
+
+        // count_jails_query
+        // The query used to count the total amount of jails in the database.
+        "count_jails_query": "@f2abuseipdb_COUNT_JAILS@",
+
+        // get_all_banned_ips_query
+        // The query used to retrieve ALL banned IPs from the database.
+        "get_all_banned_ips_query": "@f2abuseipdb_GET_ALL_BANS@",
+
+        // get_banned_ips_per_jail_query
+        // The query used to retrieve all banned IPs per jail.
+        // Note: This config uses a placeholder ${JAIL} to fill the jail name!
+        "get_banned_ips_per_jail_query": "@f2abuseipdb_GET_BANS_FOR_JAIL@",
+
+        // get_banned_ips_after_tstamp_query
+        // The query used to retrieve all IPs banned after ${DATE}
+        "get_banned_ips_after_tstamp_query": "@f2abuseipdb_GET_BANS_AFTER_TSTAMP@",
+
+        // get_banned_ips_before_tstamp_query
+        // The query used to retrieve all IPs banned before ${DATE}
+        "get_banned_ips_before_tstamp_query": "@f2abuseipdb_GET_BANS_BEFORE_TSTAMP@",
+
+        // get_banned_ips_between_tstamps_query
+        // The query used to retrieve all IPs banned between ${DATE_1} and ${DATE_2}
+        "get_banned_ips_between_tstamps_query": "@f2abuseipdb_GET_BANS_BETWEEN_TSTAMP@"
+
+    },
+
+    // OPTIONAL: jail_descriptions
+    // A collection of optional descriptions for F2B jails.
+    // fail2abuseipdb may use these when generating reports.
+    "jail_descriptions": {
+        "sshd": "Jail for bad/malicious attempts to connect via SSH.",
+        "postfix": "Jail for bad/malicious attempts to send email via Postfix."
+    }
+}
