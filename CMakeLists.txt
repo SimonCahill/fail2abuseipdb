@@ -1,18 +1,25 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(fail2abuseipdb VERSION 0.2.0 LANGUAGES CXX DESCRIPTION "A simple utility for converting fail2ban jail info to abuseipdb csv format")
+project(fail2abuseipdb VERSION 2.0.0 LANGUAGES CXX DESCRIPTION "A simple utility for converting fail2ban jail info to abuseipdb csv format")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS ON) # optional
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/include/version.hpp)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/detect_linux_flavour.cmake)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cfg/fail2abuseipdb.jsonc ${CMAKE_CURRENT_BINARY_DIR}/cfg/fail2abuseipdb.conf @ONLY)
+file(READ ${CMAKE_CURRENT_BINARY_DIR}/cfg/fail2abuseipdb.conf f2abuseipdb_CFG)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/include/version.hpp @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/resources.in.hpp ${CMAKE_CURRENT_BINARY_DIR}/include/resources.hpp @ONLY)
 
 # Set options for submodules
 # I don't want to build Nils' tests
-
 set(JSON_BuildTests OFF CACHE BOOL "Disable JSON test utils")
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/submodules/fmt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/check_for_spdlog.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/check_for_gtest.cmake)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/submodules/json)
 
 # Set compiler options
@@ -27,7 +34,7 @@ include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
-if (DEFINED fail2abuseipdb_DEBUG)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "### ENABLED DEBUG ###")
     add_compile_options(
         -O0
@@ -55,8 +62,9 @@ add_executable(
 target_link_libraries(
     ${PROJECT_NAME}
 
-    fmt
     nlohmann_json
+    sqlite3
+    spdlog
 )
 
 ###
@@ -90,7 +98,7 @@ add_custom_command(
 )
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
-set(CPACK_PACKAGE_CONTACT "Simon Cahill <simon@simonc.eu>")
+set(CPACK_PACKAGE_CONTACT "Simon Cahill <contact@simonc.eu>")
 set(CPACK_PACKAGE_VENDOR "Simon Cahill")
 set(CPACK_GENERATOR DEB)
 include(CPack)
