@@ -63,6 +63,8 @@ namespace f2abuseipdb::config {
 
             optstring_t     getJailDescription(const string& jail) const;
 
+            time_t          getBanIgnoreThreshold() const;
+
         private:
             json            m_config;
     };

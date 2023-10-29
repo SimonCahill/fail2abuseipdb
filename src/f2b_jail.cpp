@@ -22,6 +22,9 @@
 // sqlite
 #include <sqlite3.h>
 
+// spdlog
+#include <spdlog/spdlog.h>
+
 /////////////////////
 // LOCAL  INCLUDES //
 /////////////////////
@@ -90,10 +93,19 @@ namespace f2abuseipdb {
     }
 
     json Jail::generateReportObject() const {
-        json report{};
+        json report{
+            { "jail_name", getJailName() },
+            { "jail_description", nullptr },
+            { "is_enabled", isEnabled() },
+            { "reports", json::array() }
+        };
+
+        if (m_jailDescription.has_value()) {
+            report["jail_description"] = m_jailDescription.value();
+        }
 
         for (const auto& record : m_reports) {
-            report.push_back(record.toJson());
+            report["reports"].push_back(record.toJson());
         }
 
         return report;
@@ -126,23 +138,26 @@ namespace f2abuseipdb {
 
         sqlite3_stmt* statement{nullptr};
         if (int32_t retCode = sqlite3_prepare_v2(dbConn, query.c_str(), query.size(), std::addressof(statement), nullptr); retCode != 0) {
-            // TODO: log error
+            spdlog::error("Error while preparing statement: {0:s}", sqlite3_errstr(retCode));
             return;
         }
         
         while (sqlite3_step(statement) == SQLITE_ROW) {
             const string ip{reinterpret_cast<const char*>(sqlite3_column_text(statement, 0)), static_cast<size_t>(sqlite3_column_bytes(statement, 0))};
-            const time_t timeOfBan = sqlite3_column_int64(statement, 2);
-            const time_t banTime = sqlite3_column_int64(statement, 3);
+            const time_t timeOfBan = sqlite3_column_int(statement, 2);
+            const time_t banTime = sqlite3_column_int(statement, 3);
             const size_t timesBanned = sqlite3_column_int64(statement, 4);
             json jsonData{};
 
             try {
                 const string jsonString{reinterpret_cast<const char*>(sqlite3_column_blob(statement, 5)), static_cast<size_t>(sqlite3_column_bytes(statement, 5))};
                 jsonData = json::parse(jsonString, nullptr, true, true);
-            } catch (json::exception&) { /* for now, we don't really care. Just means some fields won't be present */ }
+            } catch (json::exception& ex) {
+                spdlog::error("Failed to parse JSON data! Error: {0:s}", ex.what());
+            }
 
-            m_reports.emplace_back(time_point<system_clock>(seconds{timeOfBan}), seconds{banTime}, jsonData, timesBanned, ip);
+            ReportRecord report{time_point<system_clock>(seconds{timeOfBan}), seconds{banTime}, jsonData, timesBanned, ip};
+            m_reports.push_back(report);
         }
 
         sqlite3_reset(statement);
@@ -156,17 +171,20 @@ namespace f2abuseipdb {
 
         sqlite3_stmt* statement{nullptr};
         if (int32_t retCode = sqlite3_prepare_v2(dbConn, query.c_str(), query.size(), std::addressof(statement), nullptr); retCode != 0) {
-            // TODO: log error
+            spdlog::error("Failed to prepare statement: {0:s}", sqlite3_errstr(retCode));
             return;
         }
         
         while (sqlite3_step(statement) == SQLITE_ROW) {
             const string ip{reinterpret_cast<const char*>(sqlite3_column_text(statement, 0)), static_cast<size_t>(sqlite3_column_bytes(statement, 0))};
-            const time_t timeOfBan = sqlite3_column_int64(statement, 2);
-            const time_t banTime = sqlite3_column_int64(statement, 3);
+            const int32_t timeOfBan = sqlite3_column_int(statement, 2);
+            const int32_t banTime = sqlite3_column_int(statement, 3);
             const size_t timesBanned = sqlite3_column_int64(statement, 4);
 
-            if (timeOfBan + banTime >= time(nullptr)) { continue; } // this ban is already over
+            if (
+                timeOfBan + banTime < time(nullptr) ||
+                timeOfBan > cfg->getBanIgnoreThreshold()
+            ) { continue; } // this ban is already over
 
             json jsonData{};
 
@@ -195,11 +213,11 @@ namespace f2abuseipdb {
         
         while (sqlite3_step(statement) == SQLITE_ROW) {
             const string ip{reinterpret_cast<const char*>(sqlite3_column_text(statement, 0)), static_cast<size_t>(sqlite3_column_bytes(statement, 0))};
-            const time_t timeOfBan = sqlite3_column_int64(statement, 2);
-            const time_t banTime = sqlite3_column_int64(statement, 3);
+            const time_t timeOfBan = sqlite3_column_int(statement, 2);
+            const time_t banTime = sqlite3_column_int(statement, 3);
             const size_t timesBanned = sqlite3_column_int64(statement, 4);
 
-            if (time(nullptr) <= timeOfBan + banTime) { continue; }
+            if (time(nullptr) >= timeOfBan + banTime) { continue; }
 
             json jsonData{};
 

@@ -35,10 +35,13 @@
 /////////////////////
 // LOCAL  INCLUDES //
 /////////////////////
+#include "ban_selection.hpp"
 #include "config_parser.hpp"
 #include "f2b_jail.hpp"
+#include "output_formatters/json_formatter.hpp"
 #include "output_type.hpp"
 #include "resources.hpp"
+#include "string_splitter.hpp"
 
 namespace f2abuseipdb {
 
@@ -55,7 +58,10 @@ namespace f2abuseipdb {
      */
     namespace {
         using optpath_t = optional<fs::path>;
+        using optstring_t = optional<string>;
         using cfgparser_t = shared_ptr<config::ConfigParser>;
+
+        BanSelection    g_banSelectionType{BanSelection::ACTIVE_BANS};
 
         cfgparser_t     g_appConfig{nullptr};
 
@@ -64,6 +70,7 @@ namespace f2abuseipdb {
         optpath_t       g_dbFile{std::nullopt};
         optpath_t       g_outputFile{std::nullopt};
         OutputType      g_outputType{OutputType::ABUSEIPDB_CSV};
+        optstring_t     g_selectedJails{std::nullopt};
 
         sqlite3*        g_sqlite{nullptr};
 
@@ -77,6 +84,8 @@ namespace f2abuseipdb {
     int32_t     parseArgs(int32_t argc, char** argv);
     void        loadAllBansFromJails();
     void        loadCurrentBansFromJails();
+    void        loadJails();
+    void        loadPreviousBansFromJails();
     void        printHelp();
     void        printVersion();
 
@@ -101,12 +110,21 @@ namespace f2abuseipdb {
             return 1;
         }
 
-        g_jails = Jail::loadJailsFromDb(g_sqlite, g_appConfig);
-        loadAllBansFromJails();
+        loadJails();
 
-        for (const auto& jail : g_jails) {
-            cout << jail.generateReportObject().dump(2) << endl << endl;
+        switch (g_banSelectionType) {
+            case BanSelection::ALL_BANS:
+                loadAllBansFromJails();
+                break;
+            case BanSelection::PREVIOUS_BANS:
+                loadPreviousBansFromJails();
+                break;
+            default:
+                loadCurrentBansFromJails();
+                break;
         }
+
+        cout << output::JsonFormatter().formatData(g_jails) << endl;
 
         if (const auto retCode = closeSqlite(); retCode != SQLITE_OK) {
             spdlog::error("Failed to close Fail2Ban DB file. Error: SQLite: {0:s}", sqlite3_errstr(retCode));
@@ -175,9 +193,21 @@ namespace f2abuseipdb {
                     // output JSON data
                     g_outputType = OutputType::JSON;
                     break;
+                case 'J':
+                    // select entries from these jails ONLY
+                    g_selectedJails = optarg;
+                    break;
                 case 'm':
                     // output markdown document
                     g_outputType = OutputType::MARKDOWN;
+                    break;
+                case 'a':
+                    // get all ban entries from the database
+                    g_banSelectionType = BanSelection::ALL_BANS;
+                    break;
+                case 'p':
+                    // get only previous bans from the database
+                    g_banSelectionType = BanSelection::PREVIOUS_BANS;
                     break;
                 default: break;
             }
@@ -190,7 +220,7 @@ namespace f2abuseipdb {
      * @brief Loads all known bans for each jail.
      */
     void    loadAllBansFromJails() {
-        for (auto jail : g_jails) {
+        for (auto& jail : g_jails) {
             jail.loadAllBanned(g_sqlite, g_appConfig);
         }
     }
@@ -199,8 +229,34 @@ namespace f2abuseipdb {
      * @brief Loads all current bans from the jails being inspected.
      */
     void    loadCurrentBansFromJails() {
-        for (auto jail : g_jails) {
+        for (auto& jail : g_jails) {
             jail.loadActiveBanned(g_sqlite, g_appConfig);
+        }
+    }
+
+    /**
+     * @brief Loads all selected jails from the database.
+     */
+    void    loadJails() {
+        if (!g_selectedJails.has_value()) {
+            g_jails = Jail::loadJailsFromDb(g_sqlite, g_appConfig);
+            return;
+        }
+
+        for (const auto& jail : StringSplit(g_selectedJails.value(), ",")) {
+            const auto optJail = Jail::loadJailFromDb(jail.data(), g_sqlite, g_appConfig);
+            if (optJail.has_value()) {
+                g_jails.push_back(optJail.value());
+            }
+        }
+    }
+
+    /**
+     * @brief Loads all previously banned (inactive) hosts for each jail.
+     */
+    void    loadPreviousBansFromJails() {
+        for (auto& jail : g_jails) {
+            jail.loadFormerBanned(g_sqlite, g_appConfig);
         }
     }
 

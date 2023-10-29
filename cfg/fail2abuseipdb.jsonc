@@ -34,6 +34,10 @@
     // This file is generally located under /var/lib/fail2ban/fail2ban.sqlite3 on Debian-based systems.
     "f2b_db_file": "@f2abuseipdb_F2B_DB_FILE@",
 
+    // ignore_bans_older_than
+    // Ignore any bans that may be in affect if they are older than [[hours]].
+    "ignore_bans_older_than": 24,
+
     // queries
     // This section contains all useful queries for retrieving data
     // from the database.

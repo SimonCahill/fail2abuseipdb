@@ -122,7 +122,7 @@ namespace f2abuseipdb::config {
      *
      * @returns optstring_t Read the brief
      */
-    optstringvector ConfigParser::getJailDescriptions() const{
+    optstringvector ConfigParser::getJailDescriptions() const {
         vector<string> tempVector{};
 
         if (m_config.contains(DESCRIPTIONS_KEYWORD) && m_config[DESCRIPTIONS_KEYWORD].is_object()) {
@@ -134,6 +134,20 @@ namespace f2abuseipdb::config {
         }
 
         return tempVector.empty() ? nullopt : optstringvector{tempVector};
+    }
+
+    time_t ConfigParser::getBanIgnoreThreshold() const {
+        constexpr int32_t DEFAULT_HOURS{24};
+
+        int32_t hours = 0;
+
+        if (!m_config.contains("ignore_bans_older_than") || !m_config["ignore_bans_older_than"].is_number_integer()) {
+            hours = DEFAULT_HOURS;
+        } else {
+            hours = m_config["ignore_bans_older_than"];
+        }
+
+        return time(nullptr) - (hours * 3600);
     }
 
 } // namespace f2abuseipdb::config
