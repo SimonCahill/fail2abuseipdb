@@ -8,6 +8,8 @@
  * @copyright Copyright (c) 2023 Simon Cahill / Procyon Systems and Pascal Lüttmann
  */
 
+#ifndef FAIL2ABUSEIPDB_INCLUDE_CONFIG_PARSER_HPP
+#define FAIL2ABUSEIPDB_INCLUDE_CONFIG_PARSER_HPP
 
 /////////////////////
 // SYSTEM INCLUDES //
@@ -66,3 +68,5 @@ namespace f2abuseipdb::config {
     };
 
 } // namespace f2abuseipdb::config
+
+#endif // FAIL2ABUSEIPDB_INCLUDE_CONFIG_PARSER_HPP

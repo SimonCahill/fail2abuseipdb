@@ -43,11 +43,25 @@ namespace f2abuseipdb {
      */
     class ReportRecord {
         public: // +++ Constructor / Destructor +++
-            explicit        ReportRecord(const bantime_t& bannedOn, const seconds& banTime, const json& banData, const size_t banCount, string bannedIp);
+            explicit        ReportRecord(
+                const bantime_t& bannedOn,
+                const seconds& banTime,
+                const json& banData,
+                const size_t banCount,
+                string bannedIp
+            ): m_bannedOn(bannedOn), m_banData(banData), m_banTime(banTime), m_banCount(banCount), m_bannedIp(bannedIp) {}
             ~               ReportRecord() = default;
 
-        public: // +++ Static +++
-            ReportRecord&&  fromRow();
+        public: // +++ Public API +++
+            json          toJson() const {
+                return {
+                    { "host_address",   m_bannedIp                              },
+                    { "banned_on",      m_bannedOn.time_since_epoch().count()   },
+                    { "banned_for",     m_banTime.count()                       },
+                    { "ban_count",      m_banCount                              },
+                    { "ban_data",       m_banData                               }
+                };
+            }
 
         private:
             bantime_t       m_bannedOn{};

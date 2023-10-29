@@ -17,6 +17,7 @@
 
 
 namespace f2abuseipdb::config {
+    
     using std::exception;
     using std::ifstream;
     using std::map;

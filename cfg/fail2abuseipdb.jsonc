@@ -46,6 +46,8 @@
         // The query used to retrieve a list of jails from the database.
         "get_jails_query": "@f2abuseipdb_GET_JAILS@",
 
+        "get_specific_jail_query": "@f2abuseipdb_GET_SPECIFIC_JAIL@",
+
         // count_jails_query
         // The query used to count the total amount of jails in the database.
         "count_jails_query": "@f2abuseipdb_COUNT_JAILS@",

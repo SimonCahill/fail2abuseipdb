@@ -14,6 +14,7 @@
 // stl
 #include <algorithm>
 #include <filesystem>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <string>
@@ -23,7 +24,7 @@
 #include <nlohmann/json.hpp>
 
 // fmt
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 // libc
 #include <getopt.h>
@@ -35,14 +36,19 @@
 // LOCAL  INCLUDES //
 /////////////////////
 #include "config_parser.hpp"
+#include "f2b_jail.hpp"
+#include "output_type.hpp"
 #include "resources.hpp"
 
 namespace f2abuseipdb {
 
     namespace fs = std::filesystem;
 
+    using std::cout;
+    using std::endl;
     using std::optional;
     using std::shared_ptr;
+    using std::vector;
 
     /**
      * @brief Anonymous namespace to keep globals in this file only.
@@ -51,20 +57,28 @@ namespace f2abuseipdb {
         using optpath_t = optional<fs::path>;
         using cfgparser_t = shared_ptr<config::ConfigParser>;
 
-        cfgparser_t g_appConfig{nullptr};
+        cfgparser_t     g_appConfig{nullptr};
 
-        fs::path    g_configFile{resources::CONFIG_FILE_PATH};
-        optpath_t   g_dbFile{std::nullopt};
-        optpath_t   g_outputFile{std::nullopt};
+        fs::path        g_configFile{resources::CONFIG_FILE_PATH};
 
-        sqlite3*    g_sqlite{nullptr};
+        optpath_t       g_dbFile{std::nullopt};
+        optpath_t       g_outputFile{std::nullopt};
+        OutputType      g_outputType{OutputType::ABUSEIPDB_CSV};
+
+        sqlite3*        g_sqlite{nullptr};
+
+        vector<Jail>    g_jails{};
 
     }
 
-    int32_t openSqlite();
-    int32_t parseArgs(int32_t argc, char** argv);
-    void    printHelp();
-    void    printVersion();
+    fs::path    getDbFile();
+    int32_t     closeSqlite();
+    int32_t     openSqlite();
+    int32_t     parseArgs(int32_t argc, char** argv);
+    void        loadAllBansFromJails();
+    void        loadCurrentBansFromJails();
+    void        printHelp();
+    void        printVersion();
 
     /**
      * @brief The program's main entry point.
@@ -81,7 +95,29 @@ namespace f2abuseipdb {
 
         g_appConfig = std::make_shared<config::ConfigParser>(g_configFile);
 
+        if (const auto retCode = openSqlite(); retCode != SQLITE_OK) {
+            spdlog::error("Failed to open Fail2Ban DB file. Error: SQLite: {0:s}", sqlite3_errstr(retCode));
+            spdlog::warn("Do you have read permissions for {0:s}?", getDbFile().string());
+            return 1;
+        }
+
+        g_jails = Jail::loadJailsFromDb(g_sqlite, g_appConfig);
+        loadAllBansFromJails();
+
+        for (const auto& jail : g_jails) {
+            cout << jail.generateReportObject().dump(2) << endl << endl;
+        }
+
+        if (const auto retCode = closeSqlite(); retCode != SQLITE_OK) {
+            spdlog::error("Failed to close Fail2Ban DB file. Error: SQLite: {0:s}", sqlite3_errstr(retCode));
+            return 1;
+        }
+
         return 0;
+    }
+
+    fs::path getDbFile() {
+        return g_dbFile.value_or(g_appConfig->getF2bDatabaseFile().value_or(fs::path{resources::DEFAULT_DB_FILE_PATH}));
     }
 
     /**
@@ -100,7 +136,7 @@ namespace f2abuseipdb {
      */
     int32_t openSqlite() {
         return sqlite3_open_v2(
-            g_dbFile.value_or(g_appConfig->getF2bDatabaseFile().value_or(fs::path{resources::DEFAULT_DB_FILE_PATH})).c_str(),
+            getDbFile().c_str(),
             std::addressof(g_sqlite),
             SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX,
             nullptr
@@ -135,6 +171,14 @@ namespace f2abuseipdb {
                 case 'o': // output to file instead of stdout
                     g_outputFile = fs::path{optarg};
                     break;
+                case 'j':
+                    // output JSON data
+                    g_outputType = OutputType::JSON;
+                    break;
+                case 'm':
+                    // output markdown document
+                    g_outputType = OutputType::MARKDOWN;
+                    break;
                 default: break;
             }
         }
@@ -143,14 +187,32 @@ namespace f2abuseipdb {
     }
 
     /**
+     * @brief Loads all known bans for each jail.
+     */
+    void    loadAllBansFromJails() {
+        for (auto jail : g_jails) {
+            jail.loadAllBanned(g_sqlite, g_appConfig);
+        }
+    }
+
+    /**
+     * @brief Loads all current bans from the jails being inspected.
+     */
+    void    loadCurrentBansFromJails() {
+        for (auto jail : g_jails) {
+            jail.loadActiveBanned(g_sqlite, g_appConfig);
+        }
+    }
+
+    /**
      * @brief Prints the application's help text.
      */
-    void    printHelp() { /*TODO*/ }
+    void    printHelp() { cout << resources::APP_HELP_TEXT << endl; }
 
     /**
      * @brief Prints the application's version.
      */
-    void    printVersion() { /*TODO*/ }
+    void    printVersion() { cout << resources::APP_VER_TEXT << endl; }
 
 }
 

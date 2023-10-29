@@ -33,7 +33,10 @@ namespace f2abuseipdb {
     using std::vector;
 
     optional<Jail> Jail::loadJailFromDb(const string& jail, sqlite3* dbConn, shared_ptr<config::ConfigParser> cfg) {
-        const auto query = cfg->getQuery("get_banned_ips_per_jail_query");
+        const static string STR_VAR{"${JAIL}"};
+        auto query = cfg->getQuery("get_specific_jail_query");
+        query.replace(query.find(STR_VAR), STR_VAR.size(), jail);
+
         sqlite3_stmt* statement{nullptr};
         if (int32_t retCode = sqlite3_prepare_v2(dbConn, query.c_str(), query.size(), std::addressof(statement), nullptr); retCode != 0) {
             // TODO: log error
@@ -74,7 +77,7 @@ namespace f2abuseipdb {
             // Read enabled column
             const auto enabledCol = sqlite3_column_int(statement, 1);
 
-            jails.emplace_back(Jail(nameCol, static_cast<bool>(enabledCol)));
+            jails.emplace_back(nameCol, static_cast<bool>(enabledCol), cfg->getJailDescription(nameCol));
         }
 
         if (retCode != SQLITE_DONE) {
@@ -84,6 +87,16 @@ namespace f2abuseipdb {
         sqlite3_reset(statement);
 
         return jails;
+    }
+
+    json Jail::generateReportObject() const {
+        json report{};
+
+        for (const auto& record : m_reports) {
+            report.push_back(record.toJson());
+        }
+
+        return report;
     }
 
     size_t Jail::getTotalJails(sqlite3* dbConn, shared_ptr<config::ConfigParser> cfg) {
@@ -105,5 +118,100 @@ namespace f2abuseipdb {
         return result;
     }
 
+    void Jail::loadAllBanned(sqlite3* dbConn, shared_ptr<config::ConfigParser> cfg) {
+        m_reports.clear();
+        const static string JAIL_VAR{"${JAIL}"};
+        auto query = cfg->getQuery("get_banned_ips_per_jail_query");
+        query.replace(query.find(JAIL_VAR), JAIL_VAR.size(), getJailName());
+
+        sqlite3_stmt* statement{nullptr};
+        if (int32_t retCode = sqlite3_prepare_v2(dbConn, query.c_str(), query.size(), std::addressof(statement), nullptr); retCode != 0) {
+            // TODO: log error
+            return;
+        }
+        
+        while (sqlite3_step(statement) == SQLITE_ROW) {
+            const string ip{reinterpret_cast<const char*>(sqlite3_column_text(statement, 0)), static_cast<size_t>(sqlite3_column_bytes(statement, 0))};
+            const time_t timeOfBan = sqlite3_column_int64(statement, 2);
+            const time_t banTime = sqlite3_column_int64(statement, 3);
+            const size_t timesBanned = sqlite3_column_int64(statement, 4);
+            json jsonData{};
+
+            try {
+                const string jsonString{reinterpret_cast<const char*>(sqlite3_column_blob(statement, 5)), static_cast<size_t>(sqlite3_column_bytes(statement, 5))};
+                jsonData = json::parse(jsonString, nullptr, true, true);
+            } catch (json::exception&) { /* for now, we don't really care. Just means some fields won't be present */ }
+
+            m_reports.emplace_back(time_point<system_clock>(seconds{timeOfBan}), seconds{banTime}, jsonData, timesBanned, ip);
+        }
+
+        sqlite3_reset(statement);
+    }
+
+    void Jail::loadActiveBanned(sqlite3* dbConn, shared_ptr<config::ConfigParser> cfg) {
+        m_reports.clear();
+        const static string JAIL_VAR{"${JAIL}"};
+        auto query = cfg->getQuery("get_banned_ips_per_jail_query");
+        query.replace(query.find(JAIL_VAR), JAIL_VAR.size(), getJailName());
+
+        sqlite3_stmt* statement{nullptr};
+        if (int32_t retCode = sqlite3_prepare_v2(dbConn, query.c_str(), query.size(), std::addressof(statement), nullptr); retCode != 0) {
+            // TODO: log error
+            return;
+        }
+        
+        while (sqlite3_step(statement) == SQLITE_ROW) {
+            const string ip{reinterpret_cast<const char*>(sqlite3_column_text(statement, 0)), static_cast<size_t>(sqlite3_column_bytes(statement, 0))};
+            const time_t timeOfBan = sqlite3_column_int64(statement, 2);
+            const time_t banTime = sqlite3_column_int64(statement, 3);
+            const size_t timesBanned = sqlite3_column_int64(statement, 4);
+
+            if (timeOfBan + banTime >= time(nullptr)) { continue; } // this ban is already over
+
+            json jsonData{};
+
+            try {
+                const string jsonString{reinterpret_cast<const char*>(sqlite3_column_blob(statement, 5)), static_cast<size_t>(sqlite3_column_bytes(statement, 5))};
+                jsonData = json::parse(jsonString, nullptr, true, true);
+            } catch (json::exception&) { /* for now, we don't really care. Just means some fields won't be present */ }
+
+            m_reports.emplace_back(time_point<system_clock>(seconds{timeOfBan}), seconds{banTime}, jsonData, timesBanned, ip);
+        }
+
+        sqlite3_reset(statement);
+    }
+
+    void Jail::loadFormerBanned(sqlite3* dbConn, shared_ptr<config::ConfigParser> cfg) {
+        m_reports.clear();
+        const static string JAIL_VAR{"${JAIL}"};
+        auto query = cfg->getQuery("get_banned_ips_per_jail_query");
+        query.replace(query.find(JAIL_VAR), JAIL_VAR.size(), getJailName());
+
+        sqlite3_stmt* statement{nullptr};
+        if (int32_t retCode = sqlite3_prepare_v2(dbConn, query.c_str(), query.size(), std::addressof(statement), nullptr); retCode != 0) {
+            // TODO: log error
+            return;
+        }
+        
+        while (sqlite3_step(statement) == SQLITE_ROW) {
+            const string ip{reinterpret_cast<const char*>(sqlite3_column_text(statement, 0)), static_cast<size_t>(sqlite3_column_bytes(statement, 0))};
+            const time_t timeOfBan = sqlite3_column_int64(statement, 2);
+            const time_t banTime = sqlite3_column_int64(statement, 3);
+            const size_t timesBanned = sqlite3_column_int64(statement, 4);
+
+            if (time(nullptr) <= timeOfBan + banTime) { continue; }
+
+            json jsonData{};
+
+            try {
+                const string jsonString{reinterpret_cast<const char*>(sqlite3_column_blob(statement, 5)), static_cast<size_t>(sqlite3_column_bytes(statement, 5))};
+                jsonData = json::parse(jsonString, nullptr, true, true);
+            } catch (json::exception&) { /* for now, we don't really care. Just means some fields won't be present */ }
+
+            m_reports.emplace_back(time_point<system_clock>(seconds{timeOfBan}), seconds{banTime}, jsonData, timesBanned, ip);
+        }
+
+        sqlite3_reset(statement);
+    }
 
 }

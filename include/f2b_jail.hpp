@@ -72,11 +72,11 @@ namespace f2abuseipdb {
             string              getJailName() const { return m_jailName; }
 
         public: // +++ Business Logic +++
-            json&&              generateReportObject() const;
+            json                generateReportObject() const;
 
-            void                loadAllBanned(const sqlite3*);
-            void                loadActiveBanned(const sqlite3*);
-            void                loadFormerBanned(const sqlite3*);
+            void                loadAllBanned(sqlite3*, shared_ptr<config::ConfigParser>);
+            void                loadActiveBanned(sqlite3*, shared_ptr<config::ConfigParser>);
+            void                loadFormerBanned(sqlite3*, shared_ptr<config::ConfigParser>);
 
         private:
             bool                m_isEnabled{true};
