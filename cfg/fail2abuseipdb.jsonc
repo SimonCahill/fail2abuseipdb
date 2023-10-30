@@ -56,6 +56,11 @@
         // The query used to count the total amount of jails in the database.
         "count_jails_query": "@f2abuseipdb_COUNT_JAILS@",
 
+        // count_bans_in_jail_query
+        // The query used to count the total amount of bans in the jail,
+        // regardless of whether or not they're active.
+        "count_bans_in_jail_query": "@f2abuseipdb_COUNT_JAIL_BANS@",
+
         // get_all_banned_ips_query
         // The query used to retrieve ALL banned IPs from the database.
         "get_all_banned_ips_query": "@f2abuseipdb_GET_ALL_BANS@",

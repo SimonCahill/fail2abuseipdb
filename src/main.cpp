@@ -36,9 +36,10 @@
 // LOCAL  INCLUDES //
 /////////////////////
 #include "ban_selection.hpp"
-#include "config_parser.hpp"
+#include "config/config_manager.hpp"
 #include "f2b_jail.hpp"
 #include "output_formatters/json_formatter.hpp"
+#include "output_formatters/markdown_formatter.hpp"
 #include "output_type.hpp"
 #include "resources.hpp"
 #include "string_splitter.hpp"
@@ -59,7 +60,7 @@ namespace f2abuseipdb {
     namespace {
         using optpath_t = optional<fs::path>;
         using optstring_t = optional<string>;
-        using cfgparser_t = shared_ptr<config::ConfigParser>;
+        using cfgparser_t = shared_ptr<config::ConfigManager>;
 
         BanSelection    g_banSelectionType{BanSelection::ACTIVE_BANS};
 
@@ -102,7 +103,8 @@ namespace f2abuseipdb {
             return retCode - 1;
         }
 
-        g_appConfig = std::make_shared<config::ConfigParser>(g_configFile);
+        g_appConfig = std::make_shared<config::ConfigManager>(g_configFile);
+        g_appConfig->loadConfiguration();
 
         if (const auto retCode = openSqlite(); retCode != SQLITE_OK) {
             spdlog::error("Failed to open Fail2Ban DB file. Error: SQLite: {0:s}", sqlite3_errstr(retCode));
@@ -124,7 +126,7 @@ namespace f2abuseipdb {
                 break;
         }
 
-        cout << output::JsonFormatter().formatData(g_jails) << endl;
+        cout << output::MarkdownFormatter(g_appConfig).formatData(g_jails) << endl;
 
         if (const auto retCode = closeSqlite(); retCode != SQLITE_OK) {
             spdlog::error("Failed to close Fail2Ban DB file. Error: SQLite: {0:s}", sqlite3_errstr(retCode));
@@ -135,7 +137,7 @@ namespace f2abuseipdb {
     }
 
     fs::path getDbFile() {
-        return g_dbFile.value_or(g_appConfig->getF2bDatabaseFile().value_or(fs::path{resources::DEFAULT_DB_FILE_PATH}));
+        return g_dbFile.value_or(g_appConfig->getF2bDatabaseFile());
     }
 
     /**

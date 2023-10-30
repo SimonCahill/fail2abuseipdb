@@ -3,6 +3,8 @@
     "files.associations": {
         "optional": "cpp",
         "string": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "iosfwd": "cpp",
+        "functional": "cpp"
     }
 }

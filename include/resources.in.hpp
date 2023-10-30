@@ -24,6 +24,7 @@
 namespace f2abuseipdb::resources {
 
     using std::map;
+    using std::string;
     using std::string_view;
 
     inline static constexpr string_view APP_NAME{R"(@PROJECT_NAME@)"}; //!< The name of the application
@@ -82,7 +83,7 @@ Arguments:
 
     namespace defaults {
 
-        inline static map<string_view, string_view> DEFAULT_QUERIES = {
+        inline static map<string_view, string> DEFAULT_QUERIES = {
             { "get_jails_query", "@f2abuseipdb_GET_JAILS@" },
             { "count_jails_query", "@f2abuseipdb_COUNT_JAILS@" },
             { "get_all_banned_ips_query", "@f2abuseipdb_GET_ALL_BANS@" },
@@ -90,7 +91,8 @@ Arguments:
             { "get_banned_ips_after_tstamp_query", "@f2abuseipdb_GET_BANS_AFTER_TSTAMP@" },
             { "get_banned_ips_before_tstamp_query", "@f2abuseipdb_GET_BANS_BEFORE_TSTAMP@" },
             { "get_banned_ips_between_tstamps_query", "@f2abuseipdb_GET_BANS_BETWEEN_TSTAMP@" },
-            { "get_specific_jail_query", "@f2abuseipdb_GET_SPECIFIC_JAIL@" }
+            { "get_specific_jail_query", "@f2abuseipdb_GET_SPECIFIC_JAIL@" },
+            { "count_bans_in_jail_query", "@f2abuseipdb_COUNT_JAIL_BANS@" },
         };
 
         inline static constexpr string_view DEFAULT_CONFIG{R"(@f2abuseipdb_CFG@)"};

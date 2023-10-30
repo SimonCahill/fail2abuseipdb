@@ -29,7 +29,7 @@
 /////////////////////
 // LOCAL  INCLUDES //
 /////////////////////
-#include "config_parser.hpp"
+#include "config/config_manager.hpp"
 #include "report_record.hpp"
 
 namespace f2abuseipdb {
@@ -59,29 +59,34 @@ namespace f2abuseipdb {
             ~                   Jail() = default;
 
         public: // +++ Static +++
-            static optjail_t    loadJailFromDb(const string&, sqlite3*, shared_ptr<config::ConfigParser>);
-            static jailvec_t    loadJailsFromDb(sqlite3*, shared_ptr<config::ConfigParser>);
+            static optjail_t    loadJailFromDb(const string&, sqlite3*, shared_ptr<config::ConfigManager>);
+            static jailvec_t    loadJailsFromDb(sqlite3*, shared_ptr<config::ConfigManager>);
 
-            static size_t       getTotalJails(sqlite3*, shared_ptr<config::ConfigParser>);
+            static size_t       getTotalJails(sqlite3*, shared_ptr<config::ConfigManager>);
 
         public: // +++ Getter / Setter +++
             bool                isEnabled() const { return m_isEnabled; }
 
             optstr_t            getJailDescription() const { return m_jailDescription; }
+            size_t              getCurrentReportCount() const { return m_reports.size(); }
 
             string              getJailName() const { return m_jailName; }
 
         public: // +++ Business Logic +++
             json                generateReportObject() const;
 
-            void                loadAllBanned(sqlite3*, shared_ptr<config::ConfigParser>);
-            void                loadActiveBanned(sqlite3*, shared_ptr<config::ConfigParser>);
-            void                loadFormerBanned(sqlite3*, shared_ptr<config::ConfigParser>);
+            ssize_t             countAllReports(sqlite3*, shared_ptr<config::ConfigManager>) const;
+
+            void                loadAllBanned(sqlite3*, shared_ptr<config::ConfigManager>);
+            void                loadActiveBanned(sqlite3*, shared_ptr<config::ConfigManager>);
+            void                loadFormerBanned(sqlite3*, shared_ptr<config::ConfigManager>);
 
         private:
             bool                m_isEnabled{true};
 
             optstr_t            m_jailDescription{std::nullopt};
+
+            mutable ssize_t     m_totalReportCount{-1};
 
             string              m_jailName{};
 

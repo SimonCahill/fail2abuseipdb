@@ -25,3 +25,4 @@ set(f2abuseipdb_GET_BANS_FOR_JAIL "SELECT * FROM ${f2abuseipdb_BANS_TABLE} WHERE
 set(f2abuseipdb_GET_BANS_AFTER_TSTAMP "SELECT * FROM ${f2abuseipdb_BANS_TABLE} WHERE timeofban >= \${DATE};")
 set(f2abuseipdb_GET_BANS_BEFORE_TSTAMP "SELECT * FROM ${f2abuseipdb_BANS_TABLE} WHERE timeofban <= \${DATE};")
 set(f2abuseipdb_GET_BANS_BETWEEN_TSTAMP "SELECT * FROM ${f2abuseipdb_BANS_TABLE} WHERE timeofban <= \${DATE_1} AND timeofban >= \${DATE_2};")
+set(f2abuseipdb_COUNT_JAIL_BANS "SELECT COUNT(*) FROM ${f2abuseipdb_BANS_TABLE} WHERE jail = \\\"\${JAIL}\\\";")

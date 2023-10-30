@@ -27,6 +27,7 @@ add_compile_options(
     -Wpedantic
     -Werror
     -Wall
+    -Wno-unknown-pragmas # GCC <= 13 doesn't support #pragma region
 )
 
 include_directories(
